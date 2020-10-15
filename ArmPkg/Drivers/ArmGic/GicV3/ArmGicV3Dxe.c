@@ -378,6 +378,7 @@ GicV3DxeInitialize (
   UINTN                   RegShift;
   UINT64                  CpuTarget;
   UINT64                  MpId;
+  BOOLEAN                 AffinityRoutingEnabled = FALSE;
 
   // Make sure the Interrupt Controller Protocol is not already installed in
   // the system.
@@ -391,10 +392,20 @@ GicV3DxeInitialize (
   // Routing enabled. So ensure that the ARE bit is set.
   if (!FeaturePcdGet (PcdArmGicV3WithV2Legacy)) {
     MmioOr32 (mGicDistributorBase + ARM_GIC_ICDDCR, ARM_GIC_ICDDCR_ARE);
+    // If Affinity Routing is Enabled, the first 32 interrupts (SGI and PPI)
+    // can be programmed only through Redistributor interface (GICR).
+    // Initializing the IPRIORITYN registers for these interrupts can be 
+    // skipped as the Redistributor will be powered up and initialized
+    // at the appropriate time (e.g. in EL3 by trusted firmware).
+    AffinityRoutingEnabled = TRUE;
   }
 
   for (Index = 0; Index < mGicNumInterrupts; Index++) {
     GicV3DisableInterruptSource (&gHardwareInterruptV3Protocol, Index);
+
+    if (AffinityRoutingEnabled && Index < 32) {
+      continue;
+    }
 
     // Set Priority
     RegOffset = Index / 4;
