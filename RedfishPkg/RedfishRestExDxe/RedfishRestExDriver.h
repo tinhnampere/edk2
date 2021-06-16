@@ -85,7 +85,7 @@ struct _RESTEX_SERVICE {
   //
   EFI_HANDLE                    HttpChildHandle;
 
-  UINT32                        Id;
+  UINT32                        *Id;
 
   EFI_REST_EX_SERVICE_INFO      RestExServiceInfo;
 };

@@ -218,7 +218,7 @@ RedfishConfigHandlerInitialization (
   UINTN                                 NumberOfHandles;
   EDKII_REDFISH_CONFIG_HANDLER_PROTOCOL *ConfigHandler;
   UINTN                                 Index;
-  UINT32                                Id;
+  UINT32                                *Id;
 
   Status = gBS->LocateHandleBuffer (
                   ByProtocol,

@@ -1324,7 +1324,7 @@ TestForRequiredProtocols (
   IN EFI_HANDLE ControllerHandle
   )
 {
-  UINT32 Id;
+  UINT32 *Id;
   UINTN Index;
   EFI_STATUS Status;
 
@@ -1373,7 +1373,7 @@ BuildupNetworkInterface (
   IN EFI_HANDLE ControllerHandle
   )
 {
-  UINT32 Id;
+  UINT32 *Id;
   UINT32 Index;
   EFI_REDFISH_DISCOVER_NETWORK_INTERFACE_INTERNAL *NetworkInterface;
   BOOLEAN IsNew;
