@@ -1322,6 +1322,21 @@ XhcExecTransfer (
     goto DONE;
   }
 
+  //
+  // WORKAROUND - USB Net driver
+  // Typically, there are two cases that the BMC device returns NAK
+  // when receiving a BULK IN request
+  //   - Case 1: BMC has no data for the Bulk In request
+  //   - Case 2: BMC is preparing the data for returning to the Host
+  // So, I'm adding a workaround for reducing the number of retries for
+  // checking Bulk In response from BMC device in the case 1 so that
+  // the Host will return Timeout right after receiving a series of 50
+  // sequential NAK responses.
+  //
+#define MAX_NUMBER_OF_NAK_FOR_A_BULK_IN_REQUEST  50
+  UINTN Count;
+  Count = 0;
+
 RINGDOORBELL:
   XhcRingDoorBell (Xhc, SlotId, Dci);
 
@@ -1331,6 +1346,12 @@ RINGDOORBELL:
       break;
     }
     gBS->Stall (XHC_1_MICROSECOND);
+    if (++Count > MAX_NUMBER_OF_NAK_FOR_A_BULK_IN_REQUEST
+        && Urb->Ep.EpAddr == 1
+        && Urb->Ep.Direction == EfiUsbDataIn
+        && Urb->Ep.Type == XHC_BULK_TRANSFER) {
+      break;
+    }
   } while (IndefiniteTimeout || EFI_ERROR(gBS->CheckEvent (TimeoutEvent)));
 
 DONE:

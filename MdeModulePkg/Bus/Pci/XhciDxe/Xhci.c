@@ -1281,9 +1281,15 @@ XhcBulkTransfer (
              );
 
 ON_EXIT:
+#if 0
+  //
+  // Reduces error messages when there is no data from USB device.
+  //
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "XhcBulkTransfer: error - %r, transfer - %x\n", Status, *TransferResult));
   }
+#endif
+
   gBS->RestoreTPL (OldTpl);
 
   return Status;
