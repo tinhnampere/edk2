@@ -9,6 +9,7 @@
 
 #include <Uefi.h>
 #include <Library/BaseMemoryLib.h>
+#include <Library/DebugLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/NetLib.h>
 #include <Library/UefiBootServicesTableLib.h>
@@ -21,6 +22,7 @@
   This function allows the caller to create child handle for specific
   REST server.
 
+  @param[in]  Controller           The controller handle used of selected interface.
   @param[in]  Image                The image handle used to open service.
   @param[in]  AccessMode           Access mode of REST server.
   @param[in]  ConfigType           Underlying configuration to communicate with REST server.
@@ -33,6 +35,7 @@
 **/
 EFI_STATUS
 RestExLibCreateChild (
+  IN EFI_HANDLE Controller,
   IN EFI_HANDLE Image,
   IN EFI_REST_EX_SERVICE_ACCESS_MODE  AccessMode,
   IN EFI_REST_EX_CONFIG_TYPE ConfigType,
@@ -41,8 +44,6 @@ RestExLibCreateChild (
 )
 {
   EFI_STATUS Status;
-  UINTN NoBuffer;
-  EFI_HANDLE *Handle;
   EFI_HANDLE ChildHandle;
   EFI_REST_EX_PROTOCOL *RestEx;
   EFI_REST_EX_SERVICE_INFO *RestExServiceInfo;
@@ -58,50 +59,24 @@ RestExLibCreateChild (
   }
 
   *ChildInstanceHandle = NULL;
-  //
-  // Locate all REST EX binding service.
-  //
-  Handle = NULL;
-  NoBuffer = 0;
-  Status = gBS->LocateHandleBuffer (
-              ByProtocol,
-              &gEfiRestExServiceBindingProtocolGuid,
-              NULL,
-              &NoBuffer,
-              &Handle
-            );
-  if (EFI_ERROR (Status) && Status != EFI_BUFFER_TOO_SMALL) {
-    return Status;
-  }
-  Handle = (EFI_HANDLE *)AllocateZeroPool (sizeof(EFI_HANDLE) * NoBuffer);
-  if (Handle == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-  Status = gBS->LocateHandleBuffer (
-              ByProtocol,
-              &gEfiRestExServiceBindingProtocolGuid,
-              NULL,
-              &NoBuffer,
-              &Handle
-            );
-  if (EFI_ERROR (Status)) {
-    FreePool (Handle);
-    return Status;
-  }
 
-  //
-  // Search for the proper REST EX instance.
-  //
-  while (NoBuffer != 0) {
-    ChildHandle = NULL;
-    Status = NetLibCreateServiceChild (
-                *(Handle + (NoBuffer - 1)),
-                Image,
-                &gEfiRestExServiceBindingProtocolGuid,
-                &ChildHandle
-                );
-    if (!EFI_ERROR (Status)) {
-      Status = gBS->OpenProtocol (
+  ChildHandle = NULL;
+  Status = NetLibCreateServiceChild (
+             Controller,
+             Image,
+             &gEfiRestExServiceBindingProtocolGuid,
+             &ChildHandle
+             );
+  if (EFI_ERROR (Status)) {
+    DEBUG ((
+      DEBUG_ERROR,
+      "%a: Failed to create service child - %r \n",
+      __FUNCTION__,
+      Status
+      ));
+    return Status;
+  }
+  Status = gBS->OpenProtocol (
                   ChildHandle,
                   &gEfiRestExProtocolGuid,
                   (VOID **)&RestEx,
@@ -109,58 +84,55 @@ RestExLibCreateChild (
                   NULL,
                   EFI_OPEN_PROTOCOL_GET_PROTOCOL
                   );
-      if (EFI_ERROR (Status)) {
-        goto ON_ERROR;
-      }
+  if (EFI_ERROR (Status)) {
+    goto ON_ERROR;
+  }
 
-      //
-      // Get the information of REST service provided by this EFI REST EX driver
-      //
-      Status = RestEx->GetService (
-                            RestEx,
-                            &RestExServiceInfo
-                            );
-      if (EFI_ERROR (Status)) {
-        goto ON_ERROR;
-      }
-      //
-      // Check REST EX property.
-      //
-      switch (ConfigType) {
-        case EfiRestExConfigHttp:
-          LenOfConfig = sizeof (EFI_REST_EX_HTTP_CONFIG_DATA);
-          break;
+  //
+  // Get the information of REST service provided by this EFI REST EX driver
+  //
+  Status = RestEx->GetService (
+                     RestEx,
+                     &RestExServiceInfo
+                     );
+  if (EFI_ERROR (Status)) {
+    goto ON_ERROR;
+  }
+  //
+  // Check REST EX property.
+  //
+  switch (ConfigType) {
+  case EfiRestExConfigHttp:
+    LenOfConfig = sizeof (EFI_REST_EX_HTTP_CONFIG_DATA);
+    break;
 
-        case EfiRestExConfigUnspecific:
-          LenOfConfig = REST_EX_CONFIG_DATA_LEN_UNKNOWN;
-          break;
+  case EfiRestExConfigUnspecific:
+    LenOfConfig = REST_EX_CONFIG_DATA_LEN_UNKNOWN;
+    break;
 
-        default:
-          goto ON_ERROR;
-      }
-      if (RestExServiceInfo->EfiRestExServiceInfoV10.RestServiceAccessMode != AccessMode ||
-          RestExServiceInfo->EfiRestExServiceInfoV10.RestServiceType != ServiceType ||
-          RestExServiceInfo->EfiRestExServiceInfoV10.RestExConfigType != ConfigType ||
-          ((LenOfConfig != REST_EX_CONFIG_DATA_LEN_UNKNOWN) && (RestExServiceInfo->EfiRestExServiceInfoV10.RestExConfigDataLength != LenOfConfig))) {
-        goto ON_ERROR;
-      }
-    }
-    //
-    // This is proper REST EX instance.
-    //
-    *ChildInstanceHandle = ChildHandle;
-    FreePool (Handle);
-    return EFI_SUCCESS;
+  default:
+    goto ON_ERROR;
+  }
+  if (RestExServiceInfo->EfiRestExServiceInfoV10.RestServiceAccessMode != AccessMode ||
+      RestExServiceInfo->EfiRestExServiceInfoV10.RestServiceType != ServiceType ||
+      RestExServiceInfo->EfiRestExServiceInfoV10.RestExConfigType != ConfigType ||
+      ((LenOfConfig != REST_EX_CONFIG_DATA_LEN_UNKNOWN) && (RestExServiceInfo->EfiRestExServiceInfoV10.RestExConfigDataLength != LenOfConfig))) {
+    goto ON_ERROR;
+  }
+
+  //
+  // This is proper REST EX instance.
+  //
+  *ChildInstanceHandle = ChildHandle;
+  return EFI_SUCCESS;
 
 ON_ERROR:;
     NetLibDestroyServiceChild (
-      *(Handle + (NoBuffer - 1)),
+      Controller,
       Image,
       &gEfiRestExServiceBindingProtocolGuid,
       ChildHandle
       );
-    NoBuffer --;
-  };
-  FreePool (Handle);
+
   return EFI_NOT_FOUND;
 }
