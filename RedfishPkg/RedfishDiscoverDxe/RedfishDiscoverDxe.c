@@ -256,7 +256,8 @@ Tcp6GetSubnetInfo (
     return Status;
   }
   if (IpModedata.AddressCount == 0) {
-    DEBUG ((DEBUG_INFO, "%a: No IPv6 address configured.\n"));
+    DEBUG ((DEBUG_INFO, "%a: No IPv6 address configured.\n", __FUNCTION__));
+    return EFI_NOT_FOUND;
   }
   if (Instance->SubnetAddrInfoIPv6 != NULL) {
     FreePool (Instance->SubnetAddrInfoIPv6);
@@ -785,7 +786,7 @@ AddAndSignalNewRedfishService (
       }
     }
     Status = gBS->SignalEvent(Instance->DiscoverToken->Event);
-    if (!EFI_ERROR (Status)) {
+    if (EFI_ERROR (Status)) {
       DEBUG ((DEBUG_ERROR,"%a:No event to signal!\n", __FUNCTION__));
     }
   }
