@@ -4,6 +4,7 @@
 Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
 Copyright (c) 2011 - 2021, Intel Corporation. All rights reserved.<BR>
 (C) Copyright 2015-2021 Hewlett Packard Enterprise Development LP<BR>
+Copyright (c) 2021, Ampere Computing LLC. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -2088,6 +2089,97 @@ BmMatchPartitionDevicePathNode (
 }
 
 /**
+  This function checks whether the disk has EFI System Partition (ESP).
+
+  @param BlkIo     Pointer to instance of EFI_BLOCK_IO_PROTOCOL
+
+  @retval TRUE     Block IO has EFI System Partition.
+  @retval FALSE    Block IO does not have EFI System Partition.
+ **/
+BOOLEAN
+BmCheckESP (
+  IN EFI_BLOCK_IO_PROTOCOL  *BlockIo
+  )
+{
+  EFI_STATUS                 Status;
+  UINTN                      Index;
+  BOOLEAN                    ESPExists;
+  EFI_PARTITION_TABLE_HEADER *GptHeader;
+  EFI_PARTITION_ENTRY        *PartBuffer;
+  EFI_PARTITION_ENTRY        *PartEntry;
+
+  ESPExists  = FALSE;
+  GptHeader  = NULL;
+  PartBuffer = NULL;
+  PartEntry  = NULL;
+
+  GptHeader = AllocateZeroPool ((UINTN)BlockIo->Media->BlockSize);
+  if (GptHeader == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a: %d: The resource allcation is out of resource.\n", __FUNCTION__, __LINE__));
+    goto Done;
+  }
+  Status = BlockIo->ReadBlocks (
+                      BlockIo,
+                      BlockIo->Media->MediaId,
+                      PRIMARY_PART_HEADER_LBA,
+                      BlockIo->Media->BlockSize,
+                      GptHeader
+                      );
+  if (EFI_ERROR (Status)) {
+    goto Done;
+  }
+
+  //
+  // Check Gpt Header Signature
+  //
+  if (GptHeader->Header.Signature != EFI_PTAB_HEADER_ID) {
+    goto Done;
+  }
+
+  //
+  // Read Partition Entry
+  //
+  PartBuffer = AllocateZeroPool ((UINTN)(GptHeader->NumberOfPartitionEntries * GptHeader->SizeOfPartitionEntry));
+  if (PartBuffer == NULL) {
+    DEBUG ((DEBUG_ERROR, "%a: %d: The resource allcation is out of resource.\n", __FUNCTION__, __LINE__));
+    goto Done;
+  }
+  Status = BlockIo->ReadBlocks (
+                      BlockIo,
+                      BlockIo->Media->MediaId,
+                      GptHeader->PartitionEntryLBA,
+                      GptHeader->NumberOfPartitionEntries * GptHeader->SizeOfPartitionEntry,
+                      (VOID *)PartBuffer
+                      );
+  if (EFI_ERROR (Status)) {
+    goto Done;
+  }
+
+  //
+  // Find EFI System Partition
+  //
+  PartEntry = PartBuffer;
+  for (Index = 0; Index < GptHeader->NumberOfPartitionEntries; Index++) {
+    if (CompareGuid (&PartEntry->PartitionTypeGUID, &gEfiPartTypeSystemPartGuid)) {
+      ESPExists = TRUE;
+      goto Done;
+    }
+    PartEntry++;
+  }
+
+Done:
+  if (GptHeader != NULL) {
+    FreePool (GptHeader);
+  }
+
+  if (PartBuffer != NULL) {
+    FreePool (PartBuffer);
+  }
+
+  return ESPExists;
+}
+
+/**
   Emuerate all possible bootable medias in the following order:
   1. Removable BlockIo            - The boot option only points to the removable media
                                     device, like USB key, DVD, Floppy etc.
@@ -2156,6 +2248,13 @@ BmEnumerateBootOptions (
       // Skip the fixed block io then the removable block io
       //
       if (BlkIo->Media->RemovableMedia == ((Removable == 0) ? FALSE : TRUE)) {
+        continue;
+      }
+
+      //
+      // Skip the block IO which is not removable and does not have EFI System Partition.
+      //
+      if ((Removable == 1) && !BmCheckESP (BlkIo)) {
         continue;
       }
 
