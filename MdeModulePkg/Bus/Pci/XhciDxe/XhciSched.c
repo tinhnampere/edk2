@@ -2320,7 +2320,7 @@ XhcInitializeDeviceSlot (
     DEBUG ((EFI_D_INFO, "    Address %d assigned successfully\n", DeviceAddress));
     Xhc->UsbDevContext[SlotId].XhciDevAddr = DeviceAddress;
   } else {
-    DEBUG ((DEBUG_INFO, "    Address %d assigned unsuccessfully\n"));
+    DEBUG ((DEBUG_ERROR, "    Slot %d address not assigned successfully. Status = %r\n", SlotId, Status));
     XhcDisableSlotCmd (Xhc, SlotId);
   }
 
@@ -2533,7 +2533,7 @@ XhcInitializeDeviceSlot64 (
     DEBUG ((EFI_D_INFO, "    Address %d assigned successfully\n", DeviceAddress));
     Xhc->UsbDevContext[SlotId].XhciDevAddr = DeviceAddress;
   } else {
-    DEBUG ((DEBUG_INFO, "    Address %d assigned unsuccessfully\n"));
+    DEBUG ((DEBUG_ERROR, "    Slot %d address not assigned successfully. Status = %r\n", SlotId, Status));
     XhcDisableSlotCmd64 (Xhc, SlotId);
   }
 
