@@ -3,6 +3,7 @@
 
   Copyright (C) Microsoft Corporation. All rights reserved.
   Copyright (c) 2020 - 2021, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) 2022, Ampere Computing LLC. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -846,6 +847,34 @@ BOOLEAN
   IN  CONST UINT8  *TsaCert,
   IN  UINTN        CertSize,
   OUT EFI_TIME     *SigningTime
+  );
+
+/**
+  Get the data signature from PKCS#7 signed data as described in "PKCS #7:
+  Cryptographic Message Syntax Standard". The input signed data could be wrapped
+  in a ContentInfo structure.
+
+  If P7Data, Signature, SignatureLength is NULL, then return FALSE.
+  If P7Length overflow, then return FALSE.
+  If this interface is not supported, then return FALSE.
+
+  @param[in]  P7Data       Pointer to the PKCS#7 message to verify.
+  @param[in]  P7Length     Length of the PKCS#7 message in bytes.
+  @param[out] Signature    Pointer to Signature data
+  @param[out] SignatureLength  Length of signature in bytes.
+
+  @retval  TRUE            The operation is finished successfully.
+  @retval  FALSE           Error occurs during the operation.
+  @retval  FALSE           This interface is not supported.
+
+**/
+typedef
+BOOLEAN
+(EFIAPI *EDKII_CRYPTO_PKCS7_GET_SIGNATURE) (
+  IN  CONST UINT8  *P7Data,
+  IN  UINTN        P7Length,
+  OUT UINT8        **Signature,
+  OUT UINTN        *SignatureLength
   );
 
 // =====================================================================================
@@ -3510,6 +3539,7 @@ struct _EDKII_CRYPTO_PROTOCOL {
   EDKII_CRYPTO_PKCS7_GET_CERTIFICATES_LIST           Pkcs7GetCertificatesList;
   EDKII_CRYPTO_AUTHENTICODE_VERIFY                   AuthenticodeVerify;
   EDKII_CRYPTO_IMAGE_TIMESTAMP_VERIFY                ImageTimestampVerify;
+  EDKII_CRYPTO_PKCS7_GET_SIGNATURE                   Pkcs7GetSignature;
   /// DH
   EDKII_CRYPTO_DH_NEW                                DhNew;
   EDKII_CRYPTO_DH_FREE                               DhFree;

@@ -4,6 +4,7 @@
 
   Copyright (C) Microsoft Corporation. All rights reserved.
   Copyright (c) 2019 - 2020, Intel Corporation. All rights reserved.<BR>
+  Copyright (c) 2022, Ampere Computing LLC. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -2392,6 +2393,37 @@ ImageTimestampVerify (
   )
 {
   CALL_CRYPTO_SERVICE (ImageTimestampVerify, (AuthData, DataSize, TsaCert, CertSize, SigningTime), FALSE);
+}
+
+/**
+  Get the data signature from PKCS#7 signed data as described in "PKCS #7:
+  Cryptographic Message Syntax Standard". The input signed data could be wrapped
+  in a ContentInfo structure.
+
+  If P7Data, Signature, SignatureLength is NULL, then return FALSE.
+  If P7Length overflow, then return FALSE.
+  If this interface is not supported, then return FALSE.
+
+  @param[in]  P7Data       Pointer to the PKCS#7 message to verify.
+  @param[in]  P7Length     Length of the PKCS#7 message in bytes.
+  @param[out] Signature    Pointer to Signature data
+  @param[out] SignatureLength  Length of signature in bytes.
+
+  @retval  TRUE            The operation is finished successfully.
+  @retval  FALSE           Error occurs during the operation.
+  @retval  FALSE           This interface is not supported.
+
+**/
+BOOLEAN
+EFIAPI
+Pkcs7GetSignature (
+  IN  CONST UINT8  *P7Data,
+  IN  UINTN        P7Length,
+  OUT UINT8        **Signature,
+  OUT UINTN        *SignatureLength
+  )
+{
+  CALL_CRYPTO_SERVICE (Pkcs7GetSignature, (P7Data, P7Length, Signature, SignatureLength), FALSE);
 }
 
 // =====================================================================================
