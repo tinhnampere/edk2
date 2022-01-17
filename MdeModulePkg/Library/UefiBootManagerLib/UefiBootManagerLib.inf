@@ -8,7 +8,6 @@
 #  Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
 #  Copyright (c) 2007 - 2018, Intel Corporation. All rights reserved.<BR>
 #  (C) Copyright 2016 Hewlett Packard Enterprise Development LP<BR>
-#  Copyright (c) 2021, Ampere Computing LLC. All rights reserved.<BR>
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 ##
@@ -85,7 +84,6 @@
   gEfiDiskInfoIdeInterfaceGuid                  ## SOMETIMES_CONSUMES ## GUID
   gEfiDiskInfoScsiInterfaceGuid                 ## SOMETIMES_CONSUMES ## GUID
   gEfiDiskInfoSdMmcInterfaceGuid                ## SOMETIMES_CONSUMES ## GUID
-  gEfiPartTypeSystemPartGuid                    ## SOMETIMES_CONSUMES ## GUID
 
 [Protocols]
   gEfiPciRootBridgeIoProtocolGuid               ## CONSUMES
