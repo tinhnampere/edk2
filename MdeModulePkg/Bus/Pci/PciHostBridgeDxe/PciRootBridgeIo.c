@@ -1494,6 +1494,14 @@ RootBridgeIoUnmap (
   PCI_ROOT_BRIDGE_INSTANCE  *RootBridge;
   EFI_STATUS                Status;
 
+  //
+  // See if the Map() operation associated with this Unmap() required a mapping buffer.
+  // If a mapping buffer was not required, then this function simply returns EFI_SUCCESS.
+  //
+  if (Mapping == NULL) {
+    return EFI_SUCCESS;
+  }
+
   if (mIoMmu != NULL) {
     Status = mIoMmu->Unmap (
                        mIoMmu,
