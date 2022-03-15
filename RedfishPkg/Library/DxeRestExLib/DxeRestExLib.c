@@ -16,7 +16,7 @@
 #include <Protocol/Http.h>
 #include <Protocol/RestEx.h>
 
-#define REST_EX_CONFIG_DATA_LEN_UNKNOWN 0xff
+#define REST_EX_CONFIG_DATA_LEN_UNKNOWN  0xff
 
 /**
   This function allows the caller to create child handle for specific
@@ -35,26 +35,27 @@
 **/
 EFI_STATUS
 RestExLibCreateChild (
-  IN EFI_HANDLE Controller,
-  IN EFI_HANDLE Image,
+  IN EFI_HANDLE                       Controller,
+  IN EFI_HANDLE                       Image,
   IN EFI_REST_EX_SERVICE_ACCESS_MODE  AccessMode,
-  IN EFI_REST_EX_CONFIG_TYPE ConfigType,
-  IN EFI_REST_EX_SERVICE_TYPE ServiceType,
-  OUT EFI_HANDLE *ChildInstanceHandle
-)
+  IN EFI_REST_EX_CONFIG_TYPE          ConfigType,
+  IN EFI_REST_EX_SERVICE_TYPE         ServiceType,
+  OUT EFI_HANDLE                      *ChildInstanceHandle
+  )
 {
-  EFI_STATUS Status;
-  EFI_HANDLE ChildHandle;
-  EFI_REST_EX_PROTOCOL *RestEx;
-  EFI_REST_EX_SERVICE_INFO *RestExServiceInfo;
-  UINT8 LenOfConfig;
+  EFI_STATUS                Status;
+  EFI_HANDLE                ChildHandle;
+  EFI_REST_EX_PROTOCOL      *RestEx;
+  EFI_REST_EX_SERVICE_INFO  *RestExServiceInfo;
+  UINT8                     LenOfConfig;
 
-  if (Image == NULL ||
-      AccessMode >= EfiRestExServiceModeMax ||
-      ConfigType >= EfiRestExConfigTypeMax ||
-      ServiceType >= EfiRestExServiceTypeMax ||
-      ChildInstanceHandle == NULL
-      ) {
+  if ((Image == NULL) ||
+      (AccessMode >= EfiRestExServiceModeMax) ||
+      (ConfigType >= EfiRestExConfigTypeMax) ||
+      (ServiceType >= EfiRestExServiceTypeMax) ||
+      (ChildInstanceHandle == NULL)
+      )
+  {
     return EFI_INVALID_PARAMETER;
   }
 
@@ -133,6 +134,5 @@ ON_ERROR:;
       &gEfiRestExServiceBindingProtocolGuid,
       ChildHandle
       );
-
   return EFI_NOT_FOUND;
 }
