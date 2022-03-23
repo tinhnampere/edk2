@@ -236,6 +236,18 @@ OemGetChassisNumPowerCords (
   VOID
   );
 
+/**
+  Fetches the system UUID.
+
+  @param[out] SystemUuid     The pointer to the buffer to store the System UUID.
+
+**/
+VOID
+EFIAPI
+OemGetSystemUuid (
+  OUT GUID  *SystemUuid
+  );
+
 /** Fetches the BIOS release.
 
   @return The BIOS release.

@@ -11,6 +11,7 @@
 **/
 
 #include <Uefi.h>
+#include <Guid/ZeroGuid.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/DebugLib.h>
 #include <Library/HiiLib.h>
@@ -236,6 +237,22 @@ OemGetChassisNumPowerCords (
 {
   ASSERT (FALSE);
   return 1;
+}
+
+/**
+  Fetches the system UUID.
+
+  @param[out] SystemUuid     The pointer to the buffer to store the System UUID.
+
+**/
+VOID
+EFIAPI
+OemGetSystemUuid (
+  OUT GUID  *SystemUuid
+  )
+{
+  ASSERT (FALSE);
+  CopyGuid (SystemUuid, &gZeroGuid);
 }
 
 /** Fetches the BIOS release.
