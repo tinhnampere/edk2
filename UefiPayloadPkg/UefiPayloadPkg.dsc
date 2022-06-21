@@ -3,7 +3,7 @@
 #
 # Provides drivers and definitions to create uefi payload for bootloaders.
 #
-# Copyright (c) 2014 - 2021, Intel Corporation. All rights reserved.<BR>
+# Copyright (c) 2014 - 2022, Intel Corporation. All rights reserved.<BR>
 # Copyright (c) Microsoft Corporation.
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 #
@@ -33,6 +33,10 @@
   DEFINE UNIVERSAL_PAYLOAD            = FALSE
   DEFINE SECURITY_STUB_ENABLE         = TRUE
   DEFINE SMM_SUPPORT                  = FALSE
+  DEFINE PLATFORM_BOOT_TIMEOUT        = 3
+  DEFINE ABOVE_4G_MEMORY              = TRUE
+  DEFINE BOOT_MANAGER_ESCAPE          = FALSE
+  DEFINE SD_MMC_TIMEOUT               = 1000000
   #
   # SBL:      UEFI payload for Slim Bootloader
   # COREBOOT: UEFI payload for coreboot
@@ -58,7 +62,6 @@
   DEFINE SERIAL_HARDWARE_FLOW_CONTROL = FALSE
   DEFINE SERIAL_DETECT_CABLE          = FALSE
   DEFINE SERIAL_FIFO_CONTROL          = 7 # Enable FIFO
-  DEFINE SERIAL_EXTENDED_TX_FIFO_SIZE = 16
   DEFINE UART_DEFAULT_BAUD_RATE       = $(BAUD_RATE)
   DEFINE UART_DEFAULT_DATA_BITS       = 8
   DEFINE UART_DEFAULT_PARITY          = 1
@@ -236,7 +239,7 @@
   #
   # Misc
   #
-  DebugPrintErrorLevelLib|MdePkg/Library/BaseDebugPrintErrorLevelLib/BaseDebugPrintErrorLevelLib.inf
+  DebugPrintErrorLevelLib|UefiPayloadPkg/Library/DebugPrintErrorLevelLibHob/DebugPrintErrorLevelLibHob.inf
   PerformanceLib|MdePkg/Library/BasePerformanceLibNull/BasePerformanceLibNull.inf
 !if $(SOURCE_DEBUG_ENABLE) == TRUE
   PeCoffExtraActionLib|SourceLevelDebugPkg/Library/PeCoffExtraActionLibDebug/PeCoffExtraActionLibDebug.inf
@@ -254,7 +257,7 @@
   !endif
 !endif
 
-  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   LockBoxLib|MdeModulePkg/Library/LockBoxNullLib/LockBoxNullLib.inf
   FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
@@ -269,12 +272,15 @@
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLib.inf
   VariablePolicyHelperLib|MdeModulePkg/Library/VariablePolicyHelperLib/VariablePolicyHelperLib.inf
+  VariableFlashInfoLib|MdeModulePkg/Library/BaseVariableFlashInfoLib/BaseVariableFlashInfoLib.inf
   VmgExitLib|UefiCpuPkg/Library/VmgExitLibNull/VmgExitLibNull.inf
+  ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
 
 [LibraryClasses.common.SEC]
   HobLib|UefiPayloadPkg/Library/PayloadEntryHobLib/HobLib.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
   DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
+  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
 
 [LibraryClasses.common.DXE_CORE]
   DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
@@ -344,11 +350,12 @@
   SmmServicesTableLib|MdePkg/Library/SmmServicesTableLib/SmmServicesTableLib.inf
   SmmMemLib|MdePkg/Library/SmmMemLib/SmmMemLib.inf
   MmServicesTableLib|MdePkg/Library/MmServicesTableLib/MmServicesTableLib.inf
-  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   SmmCpuPlatformHookLib|UefiCpuPkg/Library/SmmCpuPlatformHookLibNull/SmmCpuPlatformHookLibNull.inf
   SmmCpuFeaturesLib|UefiCpuPkg/Library/SmmCpuFeaturesLib/SmmCpuFeaturesLib.inf
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/SmmCpuExceptionHandlerLib.inf
   ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
+  SmmCpuRendezvousLib|UefiCpuPkg/Library/SmmCpuRendezvousLib/SmmCpuRendezvousLib.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   PerformanceLib|MdeModulePkg/Library/SmmPerformanceLib/SmmPerformanceLib.inf
 !endif
@@ -375,6 +382,7 @@
   gUefiCpuPkgTokenSpaceGuid.PcdCpuSmmEnableBspElection|FALSE
 
 [PcdsFixedAtBuild]
+  gEfiMdePkgTokenSpaceGuid.PcdHardwareErrorRecordLevel|1
   gEfiMdeModulePkgTokenSpaceGuid.PcdMaxVariableSize|0x10000
   gEfiMdeModulePkgTokenSpaceGuid.PcdMaxHardwareErrorVariableSize|0x8000
   gEfiMdeModulePkgTokenSpaceGuid.PcdVariableStoreSize|0x10000
@@ -398,11 +406,17 @@
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   gEfiMdePkgTokenSpaceGuid.PcdPerformanceLibraryPropertyMask       | 0x1
 !endif
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSdMmcGenericTimeoutValue|$(SD_MMC_TIMEOUT)
+
+  gUefiPayloadPkgTokenSpaceGuid.PcdDispatchModuleAbove4GMemory|$(ABOVE_4G_MEMORY)
+  gUefiPayloadPkgTokenSpaceGuid.PcdBootManagerEscape|$(BOOT_MANAGER_ESCAPE)
 
 [PcdsPatchableInModule.X64]
   gPcAtChipsetPkgTokenSpaceGuid.PcdRtcIndexRegister|$(RTC_INDEX_REGISTER)
   gPcAtChipsetPkgTokenSpaceGuid.PcdRtcTargetRegister|$(RTC_TARGET_REGISTER)
+!if $(NETWORK_DRIVER_ENABLE) == TRUE
   gEfiNetworkPkgTokenSpaceGuid.PcdAllowHttpConnections|TRUE
+!endif
 
 [PcdsPatchableInModule.common]
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
@@ -430,7 +444,6 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseHardwareFlowControl|$(SERIAL_HARDWARE_FLOW_CONTROL)
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialDetectCable|$(SERIAL_DETECT_CABLE)
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialFifoControl|$(SERIAL_FIFO_CONTROL)
-  gEfiMdeModulePkgTokenSpaceGuid.PcdSerialExtendedTxFifoSize|$(SERIAL_EXTENDED_TX_FIFO_SIZE)
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdPciSerialParameters|$(PCI_SERIAL_PARAMETERS)
 
@@ -468,7 +481,7 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
-  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|3
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|$(PLATFORM_BOOT_TIMEOUT)
 !if $(VARIABLE_SUPPORT) == "SPI"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize  |0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize|0
@@ -525,6 +538,8 @@
 # UEFI network modules
 #
 !if $(NETWORK_DRIVER_ENABLE) == TRUE
+[Defines]
+  DEFINE PLATFORMX64_ENABLE = TRUE
   !include NetworkPkg/Network.dsc.inc
 !endif
 
@@ -762,7 +777,6 @@
     #------------------------------
 
     <LibraryClasses>
-      DebugLib|MdePkg/Library/UefiDebugLibConOut/UefiDebugLibConOut.inf
       DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
       HandleParsingLib|ShellPkg/Library/UefiHandleParsingLib/UefiHandleParsingLib.inf
       OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf

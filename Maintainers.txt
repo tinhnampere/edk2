@@ -194,6 +194,11 @@ M: Andrew Fish <afish@apple.com> [ajfish]
 M: Ray Ni <ray.ni@intel.com> [niruiyu]
 S: Maintained
 
+EmulatorPkg: Redfish-related modules
+F: EmulatorPkg/*Redfish*
+M: Abner Chang <abner.chang@hpe.com> [changab]
+R: Nickle Wang <nickle.wang@hpe.com> [nicklela]
+
 FatPkg
 F: FatPkg/
 W: https://github.com/tianocore/tianocore.github.io/wiki/Edk2-fat-driver
@@ -535,6 +540,14 @@ F: PcAtChipsetPkg/
 W: https://github.com/tianocore/tianocore.github.io/wiki/PcAtChipsetPkg
 M: Ray Ni <ray.ni@intel.com> [niruiyu]
 
+PrmPkg
+F: PrmPkg/
+M: Michael Kubacki <mikuback@linux.microsoft.com> [makubacki]
+M: Nate DeSimone <nathaniel.l.desimone@intel.com> [nate-desimone]
+
+PrmPkg: ACPI related modules
+R: Ankit Sinha <ankit.sinha@intel.com> [ankit13s]
+
 RedfishPkg: Redfish related modules
 F: RedfishPkg/
 M: Abner Chang <abner.chang@hpe.com> [changab]
@@ -601,11 +614,13 @@ M: Guo Dong <guo.dong@intel.com> [gdong1]
 M: Ray Ni <ray.ni@intel.com> [niruiyu]
 R: Maurice Ma <maurice.ma@intel.com> [mauricema]
 R: Benjamin You <benjamin.you@intel.com> [BenjaminYou]
+R: Sean Rhodes <sean@starlabs.systems>
 S: Maintained
 
 UnitTestFrameworkPkg
 F: UnitTestFrameworkPkg/
 M: Michael D Kinney <michael.d.kinney@intel.com> [mdkinney]
+M: Michael Kubacki <mikuback@linux.microsoft.com> [makubacki]
 R: Sean Brogan <sean.brogan@microsoft.com> [spbrogan]
 R: Bret Barkelew <Bret.Barkelew@microsoft.com> [corthon]
 S: Maintained

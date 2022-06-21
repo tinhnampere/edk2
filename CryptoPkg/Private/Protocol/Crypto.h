@@ -2,8 +2,8 @@
   This Protocol provides Crypto services to DXE modules
 
   Copyright (C) Microsoft Corporation. All rights reserved.
-  Copyright (c) 2020 - 2021, Intel Corporation. All rights reserved.<BR>
   Copyright (c) 2022, Ampere Computing LLC. All rights reserved.<BR>
+  Copyright (c) 2020 - 2022, Intel Corporation. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -22,7 +22,7 @@
 /// the EDK II Crypto Protocol is extended, this version define must be
 /// increased.
 ///
-#define EDKII_CRYPTO_VERSION  7
+#define EDKII_CRYPTO_VERSION  8
 
 ///
 /// EDK II Crypto Protocol forward declaration
@@ -3486,6 +3486,35 @@ BOOLEAN
   IN  UINT16       SaltLen
   );
 
+/**
+  Parallel hash function ParallelHash256, as defined in NIST's Special Publication 800-185,
+  published December 2016.
+
+  @param[in]   Input            Pointer to the input message (X).
+  @param[in]   InputByteLen     The number(>0) of input bytes provided for the input data.
+  @param[in]   BlockSize        The size of each block (B).
+  @param[out]  Output           Pointer to the output buffer.
+  @param[in]   OutputByteLen    The desired number of output bytes (L).
+  @param[in]   Customization    Pointer to the customization string (S).
+  @param[in]   CustomByteLen    The length of the customization string in bytes.
+
+  @retval TRUE   ParallelHash256 digest computation succeeded.
+  @retval FALSE  ParallelHash256 digest computation failed.
+  @retval FALSE  This interface is not supported.
+
+**/
+typedef
+BOOLEAN
+(EFIAPI *EDKII_CRYPTO_PARALLEL_HASH_ALL)(
+  IN CONST VOID   *Input,
+  IN       UINTN  InputByteLen,
+  IN       UINTN  BlockSize,
+  OUT      VOID   *Output,
+  IN       UINTN  OutputByteLen,
+  IN CONST VOID   *Customization,
+  IN       UINTN  CustomByteLen
+  );
+
 ///
 /// EDK II Crypto Protocol
 ///
@@ -3674,6 +3703,8 @@ struct _EDKII_CRYPTO_PROTOCOL {
   /// RSA PSS
   EDKII_CRYPTO_RSA_PSS_SIGN                          RsaPssSign;
   EDKII_CRYPTO_RSA_PSS_VERIFY                        RsaPssVerify;
+  /// Parallel hash
+  EDKII_CRYPTO_PARALLEL_HASH_ALL                     ParallelHash256HashAll;
 };
 
 extern GUID  gEdkiiCryptoProtocolGuid;
