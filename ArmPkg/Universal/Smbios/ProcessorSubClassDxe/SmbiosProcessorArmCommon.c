@@ -131,7 +131,7 @@ SmbiosGetSmcArm64SocId (
   SmcCallStatus = ArmCallSmc1 (SMCCC_ARCH_SOC_ID, &SmcParam, NULL, NULL);
 
   if (SmcCallStatus >= 0) {
-    *Jep106Code = (INT32)SmcParam;
+    *Jep106Code = SmcCallStatus;
   } else {
     Status = EFI_UNSUPPORTED;
   }
@@ -140,7 +140,7 @@ SmbiosGetSmcArm64SocId (
   SmcCallStatus = ArmCallSmc1 (SMCCC_ARCH_SOC_ID, &SmcParam, NULL, NULL);
 
   if (SmcCallStatus >= 0) {
-    *SocRevision = (INT32)SmcParam;
+    *SocRevision = SmcCallStatus;
   } else {
     Status = EFI_UNSUPPORTED;
   }
