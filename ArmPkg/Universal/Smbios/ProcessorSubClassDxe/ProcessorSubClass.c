@@ -527,6 +527,12 @@ AllocateType4AndSetProcessorInformationStrings (
     OemUpdateSmbiosInfo (mHiiHandle, PartNumber, ProcessorPartNumType04);
   }
 
+  if (StrLen ((CHAR16 *)FixedPcdGetPtr (PcdProcessorVersion)) > 0) {
+    HiiSetString (mHiiHandle, PartNumber, (CHAR16 *)FixedPcdGetPtr (PcdProcessorPartNumber), NULL);
+  } else {
+    OemUpdateSmbiosInfo (mHiiHandle, ProcessorVersion, ProcessorVersionType04);
+  }
+
   // Processor Designation
   StringBufferSize = sizeof (CHAR16) * SMBIOS_STRING_MAX_LENGTH;
   ProcessorStr     = AllocateZeroPool (StringBufferSize);
