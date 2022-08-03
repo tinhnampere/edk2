@@ -802,6 +802,10 @@ Done:
     ASSERT_EFI_ERROR (DoneStatus);
     FreePool (ValidBuffer);
   } else {
+    //
+    // For NV variable reclaim, we use mNvVariableCache as the buffer, so copy the data back.
+    //
+    CopyMem (mNvVariableCache, (UINT8 *) (UINTN) VariableBase, VariableStoreHeader->Size);
     DoneStatus = SynchronizeRuntimeVariableCache (
                    &mVariableModuleGlobal->VariableGlobal.VariableRuntimeCacheContext.VariableRuntimeNvCache,
                    0,
