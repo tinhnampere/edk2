@@ -1,5 +1,6 @@
 /** @file
 *
+*  Copyright (c) 2022, Ampere Computing LLC. All rights reserved.
 *  Copyright (c) 2021, NUVIA Inc. All rights reserved.
 *  Copyright (c) 2015, Hisilicon Limited. All rights reserved.
 *  Copyright (c) 2015, Linaro Limited. All rights reserved.
@@ -43,7 +44,7 @@ typedef enum {
   VersionType01,
   SkuNumberType01,
   FamilyType01,
-  AssertTagType02,
+  AssetTagType02,
   SerialNumberType02,
   BoardManufacturerType02,
   ProductNameType02,
