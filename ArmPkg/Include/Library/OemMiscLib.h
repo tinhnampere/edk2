@@ -37,6 +37,7 @@ typedef struct {
 } OEM_MISC_PROCESSOR_DATA;
 
 typedef enum {
+  BiosVersionType00,
   ProductNameType01,
   SerialNumType01,
   UuidType01,
@@ -232,6 +233,26 @@ OemGetChassisHeight (
 UINT8
 EFIAPI
 OemGetChassisNumPowerCords (
+  VOID
+  );
+
+/** Fetches the BIOS release.
+
+  @return The BIOS release.
+**/
+UINT16
+EFIAPI
+OemGetBiosRelease (
+  VOID
+  );
+
+/** Fetches the embedded controller firmware release.
+
+  @return The embedded controller firmware release.
+**/
+UINT16
+EFIAPI
+OemGetEmbeddedControllerFirmwareRelease (
   VOID
   );
 
