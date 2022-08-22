@@ -512,7 +512,6 @@ AllocateType4AndSetProcessorInformationStrings (
   PartNumber       = STRING_TOKEN (STR_PROCESSOR_PART_NUMBER);
 
   SET_HII_STRING_IF_PCD_NOT_EMPTY (PcdProcessorManufacturer, ProcessorManu);
-  SET_HII_STRING_IF_PCD_NOT_EMPTY (PcdProcessorVersion, ProcessorVersion);
   SET_HII_STRING_IF_PCD_NOT_EMPTY (PcdProcessorAssetTag, AssetTag);
 
   if (StrLen ((CHAR16 *)FixedPcdGetPtr (PcdProcessorSerialNumber)) > 0) {
@@ -528,7 +527,7 @@ AllocateType4AndSetProcessorInformationStrings (
   }
 
   if (StrLen ((CHAR16 *)FixedPcdGetPtr (PcdProcessorVersion)) > 0) {
-    HiiSetString (mHiiHandle, PartNumber, (CHAR16 *)FixedPcdGetPtr (PcdProcessorPartNumber), NULL);
+    HiiSetString (mHiiHandle, ProcessorVersion, (CHAR16 *)FixedPcdGetPtr (PcdProcessorVersion), NULL);
   } else {
     OemUpdateSmbiosInfo (mHiiHandle, ProcessorVersion, ProcessorVersionType04);
   }
