@@ -159,6 +159,7 @@ GetHandleCount (
   EFI_SMBIOS_TABLE_HEADER  *Record;
 
   HandleCount = 0;
+  SmbiosHandle = SMBIOS_HANDLE_PI_RESERVED;
 
   // Iterate through entries to get the number
   do {
@@ -201,7 +202,6 @@ SmbiosMiscGetLinkTypeHandle (
     return;
   }
 
-  SmbiosHandle = SMBIOS_HANDLE_PI_RESERVED;
   *HandleCount = GetHandleCount (SmbiosType);
 
   *HandleArray = AllocateZeroPool (sizeof (SMBIOS_HANDLE) * (*HandleCount));
