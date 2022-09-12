@@ -137,7 +137,7 @@ GetBiosVersion (
 {
   CHAR16  *ReleaseString;
 
-  ReleaseString = (CHAR16 *)FixedPcdGetPtr (PcdFirmwareVersionString);
+  ReleaseString = (CHAR16 *)PcdGetPtr (PcdFirmwareVersionString);
 
   return ReleaseString;
 }
