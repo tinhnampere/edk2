@@ -1405,6 +1405,28 @@ Transmit (
   return StatCode;
 }
 
+//
+// SNP receive packet filter, set by experience
+//  - Threshold: After the request counter exceeds the threshold,
+//    filter 2 is applied. Otherwise the filter 1 is applied.
+//  - Filter x value: UsbCdcBulkIn is executed once
+//    the filter request counter has reached these values.
+//
+#define SNP_FILTER_THRESHOLD  100
+#define SNP_FILTER1_VALUE     2
+#define SNP_FILTER2_VALUE     5
+
+
+UINTN                         RequestCounter;
+UINT8                         FilterRequestCounter;
+
+UINT16
+ReceivePacketFilter (
+  IN UINTN   FilterValue,
+    IN  PXE_CDB   *Cdb,
+  IN  NIC_DATA  *Nic
+  );
+
 /**
   When the network adapter has received a frame, this command is used
   to copy the frame into driver/application storage.
@@ -1458,12 +1480,45 @@ UndiReceive (
     return;
   }
 
-  Cdb->StatCode = Receive (Cdb, Nic, Cdb->CPBaddr, Cdb->DBaddr);
+  // Cdb->StatCode = Receive (Cdb, Nic, Cdb->CPBaddr, Cdb->DBaddr);
+  if (RequestCounter < SNP_FILTER_THRESHOLD) {
+    RequestCounter++;
+    Cdb->StatCode = ReceivePacketFilter(SNP_FILTER1_VALUE, Cdb, Nic);
+  } else {
+    Cdb->StatCode = ReceivePacketFilter(SNP_FILTER2_VALUE, Cdb, Nic);
+  }
 
   if (Cdb->StatCode != PXE_STATCODE_SUCCESS) {
     Cdb->StatFlags = PXE_STATFLAGS_COMMAND_FAILED;
+  } else {
+    RequestCounter = 0;
+    FilterRequestCounter = 0;
   }
 }
+
+UINT16
+ReceivePacketFilter (
+  IN UINTN   FilterValue,
+    IN  PXE_CDB   *Cdb,
+  IN  NIC_DATA  *Nic
+  )
+{
+  UINT16 Status;
+
+  Status = PXE_STATCODE_NO_DATA;
+
+  if (FilterRequestCounter % FilterValue == 0) {
+    Status = Receive (Cdb, Nic, Cdb->CPBaddr, Cdb->DBaddr);
+  }
+
+  FilterRequestCounter++;
+  if (FilterRequestCounter >= FilterValue) {
+    FilterRequestCounter = 0;
+  }
+
+  return Status;
+}
+
 
 /**
   Use USB Ethernet Protocol Bulk in command to receive data.
