@@ -1,0 +1,27 @@
+## @file
+# Platform Boot Order Lib
+#
+# Copyright (c) 2023, Ampere Computing LLC. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+#
+##
+
+[Defines]
+  INF_VERSION     = 0x0001001B
+  BASE_NAME       = PlatformBootOrderLibNull
+  FILE_GUID       = 5471131E-363A-47C6-93C7-DBB69ED7004E
+  MODULE_TYPE     = DXE_DRIVER
+  VERSION_STRING  = 1.0
+  LIBRARY_CLASS   = PlatformBootOrderLib|DXE_DRIVER
+
+[Sources]
+  PlatformBootOrderLibNull.c
+
+[Packages]
+  ArmPkg/ArmPkg.dec
+  MdePkg/MdePkg.dec
+
+[Depex]
+  TRUE
